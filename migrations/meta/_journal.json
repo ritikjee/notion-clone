@@ -1,0 +1,27 @@
+{
+  "version": "5",
+  "dialect": "pg",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "5",
+      "when": 1703920595872,
+      "tag": "0000_funny_gwen_stacy",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "5",
+      "when": 1703921874382,
+      "tag": "0001_even_iron_lad",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1703922481896,
+      "tag": "0002_organic_russian",
+      "breakpoints": true
+    }
+  ]
+}
