@@ -22,5 +22,8 @@ const migrateDb = async () => {
     console.log("🔴 Error Migrating client", error);
   }
 };
-migrateDb();
+
+// Uncomment this line to run migrations or either run `bun/npm run  migrate`
+
+// migrateDb();
 export default db;
