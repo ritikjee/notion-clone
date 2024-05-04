@@ -5,6 +5,7 @@ import db from "@/lib/supabase/db";
 import { ThemeProvider } from "@/providers/theme-provider";
 import AppStateProvider from "@/providers/state-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { SupabaseUserProvider } from "@/providers/user-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   // either use db or remove it
-  // console.log(db);
+  console.log(db);
   return (
     <html lang="en">
       <body className={inter.className}>
@@ -28,10 +29,12 @@ export default function RootLayout({
           defaultTheme="dark"
           disableTransitionOnChange
         >
-          <AppStateProvider>
-            {children}
-            <Toaster />
-          </AppStateProvider>
+          <SupabaseUserProvider>
+            <AppStateProvider>
+              {children}
+              <Toaster />
+            </AppStateProvider>
+          </SupabaseUserProvider>
         </ThemeProvider>
       </body>
     </html>

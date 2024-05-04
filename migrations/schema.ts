@@ -31,8 +31,8 @@ export const keyType = pgEnum("key_type", [
   "aead-det",
   "aead-ietf",
 ]);
-export const factorStatus = pgEnum("factor_status", ["verified", "unverified"]);
 export const factorType = pgEnum("factor_type", ["webauthn", "totp"]);
+export const factorStatus = pgEnum("factor_status", ["verified", "unverified"]);
 export const aalLevel = pgEnum("aal_level", ["aal3", "aal2", "aal1"]);
 export const codeChallengeMethod = pgEnum("code_challenge_method", [
   "plain",
@@ -55,18 +55,13 @@ export const subscriptionStatus = pgEnum("subscription_status", [
   "trialing",
 ]);
 
-export const workspaces = pgTable("workspaces", {
+export const collaborators = pgTable("collaborators", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
+  workspaceId: uuid("workspace_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
-  workspaceOwner: uuid("workspace_owner").notNull(),
-  title: text("title").notNull(),
-  iconId: text("icon_id").notNull(),
-  data: text("data"),
-  inTrash: text("in_trash"),
-  logo: text("logo"),
-  bannerUrl: text("banner_url"),
+  userId: uuid("user_id").notNull(),
 });
 
 export const files = pgTable("files", {
@@ -79,12 +74,8 @@ export const files = pgTable("files", {
   data: text("data"),
   inTrash: text("in_trash"),
   bannerUrl: text("banner_url"),
-  workspaceId: uuid("workspace_id")
-    .notNull()
-    .references(() => workspaces.id, { onDelete: "cascade" }),
-  folderId: uuid("folder_id")
-    .notNull()
-    .references(() => folders.id, { onDelete: "cascade" }),
+  workspaceId: uuid("workspace_id").notNull(),
+  folderId: uuid("folder_id").notNull(),
 });
 
 export const folders = pgTable("folders", {
@@ -97,9 +88,7 @@ export const folders = pgTable("folders", {
   data: text("data"),
   inTrash: text("in_trash"),
   bannerUrl: text("banner_url"),
-  workspaceId: uuid("workspace_id")
-    .notNull()
-    .references(() => workspaces.id, { onDelete: "cascade" }),
+  workspaceId: uuid("workspace_id").notNull(),
 });
 
 export const users = pgTable(
@@ -109,9 +98,9 @@ export const users = pgTable(
     fullName: text("full_name"),
     avatarUrl: text("avatar_url"),
     billingAddress: jsonb("billing_address"),
-    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }),
     paymentMethod: jsonb("payment_method"),
     email: text("email"),
+    updatedAt: timestamp("updated_at", { withTimezone: true, mode: "string" }),
   },
   (table) => {
     return {
