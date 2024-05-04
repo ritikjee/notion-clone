@@ -20,7 +20,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   // either use db or remove it
-  console.log(db);
+  // console.log(db);
   return (
     <html lang="en">
       <body className={inter.className}>

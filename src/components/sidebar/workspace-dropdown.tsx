@@ -4,6 +4,7 @@ import { workspace } from "@/lib/supabase/supabase-types";
 import React, { useEffect, useState } from "react";
 import CustomDialogTrigger from "../custom-alert";
 import SelectedWorkspace from "./selected-workspace";
+import WorkspaceCreator from "../workspace-creator";
 
 interface WorkspaceDropdownProps {
   privateWorkspaces: workspace[] | [];
@@ -127,7 +128,7 @@ const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
             </div>
             <CustomDialogTrigger
               header="Create A Workspace"
-              content={<></>}
+              content={<WorkspaceCreator />}
               description="Workspaces give you the power to collaborate with others. You can change your workspace privacy settings after creating the workspace too."
             >
               <div

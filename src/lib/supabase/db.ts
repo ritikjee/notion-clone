@@ -25,5 +25,5 @@ const migrateDb = async () => {
 
 // Uncomment this line to run migrations or either run `bun/npm run  migrate`
 
-migrateDb();
+// migrateDb();
 export default db;

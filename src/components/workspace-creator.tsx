@@ -16,11 +16,12 @@ import { SelectGroup } from "@radix-ui/react-select";
 import { Lock, Plus, Share } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { v4 } from "uuid";
-import { createWorkspace } from "@/lib/supabase/queries";
+import { addCollaborators, createWorkspace } from "@/lib/supabase/queries";
 // import CollaboratorSearch from "./collaborator-search";
 import { ScrollArea } from "./ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { useToast } from "./ui/use-toast";
+import CollaboratorSearch from "./collaborator-search";
 
 const WorkspaceCreator = () => {
   const { user } = useSupabaseUser();
@@ -145,7 +146,7 @@ const WorkspaceCreator = () => {
       </>
       {permissions === "shared" && (
         <div>
-          {/* <CollaboratorSearch
+          <CollaboratorSearch
             existingCollaborators={collaborators}
             getCollaborator={(user) => {
               addCollaborator(user);
@@ -155,7 +156,7 @@ const WorkspaceCreator = () => {
               <Plus />
               Add Collaborators
             </Button>
-          </CollaboratorSearch> */}
+          </CollaboratorSearch>
           <div className="mt-4">
             <span className="text-sm text-muted-foreground">
               Collaborators {collaborators.length || ""}

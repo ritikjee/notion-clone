@@ -13,6 +13,10 @@ import { redirect } from "next/navigation";
 import { ScrollArea } from "../ui/scroll-area";
 import { twMerge } from "tailwind-merge";
 import WorkspaceDropdown from "./workspace-dropdown";
+import PlanUsage from "./plan-usages";
+import NativeNavigation from "./native-navigation";
+import FoldersDropdownList from "./folder-dropdown";
+import UserCard from "./user-card";
 
 interface SidebarProps {
   params: { workspaceId: string };
@@ -63,11 +67,11 @@ const Sidebar = async ({ params, className }: SidebarProps) => {
             ...sharedWorkspaces,
           ].find((workspace) => workspace.id === params.workspaceId)}
         />
-        {/* <PlanUsage
+        <PlanUsage
           foldersLength={workspaceFolderData?.length || 0}
           subscription={subscriptionData}
-        /> */}
-        {/* <NativeNavigation myWorkspaceId={params.workspaceId} /> */}
+        />
+        <NativeNavigation myWorkspaceId={params.workspaceId} />
         <ScrollArea
           className="overflow-scroll relative
           h-[450px]
@@ -84,13 +88,13 @@ const Sidebar = async ({ params, className }: SidebarProps) => {
           to-transparent 
           z-40"
           />
-          {/* <FoldersDropdownList
+          <FoldersDropdownList
             workspaceFolders={workspaceFolderData || []}
             workspaceId={params.workspaceId}
-          /> */}
+          />
         </ScrollArea>
       </div>
-      {/* <UserCard subscription={subscriptionData} /> */}
+      <UserCard subscription={subscriptionData} />
     </aside>
   );
 };
