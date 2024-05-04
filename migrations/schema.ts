@@ -31,12 +31,28 @@ export const keyType = pgEnum("key_type", [
   "aead-det",
   "aead-ietf",
 ]);
-export const factorType = pgEnum("factor_type", ["webauthn", "totp"]);
 export const factorStatus = pgEnum("factor_status", ["verified", "unverified"]);
+export const factorType = pgEnum("factor_type", ["webauthn", "totp"]);
 export const aalLevel = pgEnum("aal_level", ["aal3", "aal2", "aal1"]);
 export const codeChallengeMethod = pgEnum("code_challenge_method", [
   "plain",
   "s256",
+]);
+export const equalityOp = pgEnum("equality_op", [
+  "in",
+  "gte",
+  "gt",
+  "lte",
+  "lt",
+  "neq",
+  "eq",
+]);
+export const action = pgEnum("action", [
+  "ERROR",
+  "TRUNCATE",
+  "DELETE",
+  "UPDATE",
+  "INSERT",
 ]);
 export const pricingType = pgEnum("pricing_type", ["recurring", "one_time"]);
 export const pricingPlanInterval = pgEnum("pricing_plan_interval", [
@@ -55,13 +71,18 @@ export const subscriptionStatus = pgEnum("subscription_status", [
   "trialing",
 ]);
 
-export const collaborators = pgTable("collaborators", {
+export const workspaces = pgTable("workspaces", {
   id: uuid("id").defaultRandom().primaryKey().notNull(),
-  workspaceId: uuid("workspace_id").notNull(),
   createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
     .defaultNow()
     .notNull(),
-  userId: uuid("user_id").notNull(),
+  workspaceOwner: uuid("workspace_owner").notNull(),
+  title: text("title").notNull(),
+  iconId: text("icon_id").notNull(),
+  data: text("data"),
+  inTrash: text("in_trash"),
+  logo: text("logo"),
+  bannerUrl: text("banner_url"),
 });
 
 export const files = pgTable("files", {
@@ -74,8 +95,12 @@ export const files = pgTable("files", {
   data: text("data"),
   inTrash: text("in_trash"),
   bannerUrl: text("banner_url"),
-  workspaceId: uuid("workspace_id").notNull(),
-  folderId: uuid("folder_id").notNull(),
+  workspaceId: uuid("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  folderId: uuid("folder_id")
+    .notNull()
+    .references(() => folders.id, { onDelete: "cascade" }),
 });
 
 export const folders = pgTable("folders", {
@@ -88,7 +113,9 @@ export const folders = pgTable("folders", {
   data: text("data"),
   inTrash: text("in_trash"),
   bannerUrl: text("banner_url"),
-  workspaceId: uuid("workspace_id").notNull(),
+  workspaceId: uuid("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
 });
 
 export const users = pgTable(
@@ -149,10 +176,13 @@ export const subscriptions = pgTable("subscriptions", {
   id: text("id").primaryKey().notNull(),
   userId: uuid("user_id")
     .notNull()
+    .references(() => users.id)
     .references(() => users.id),
   status: subscriptionStatus("status"),
   metadata: jsonb("metadata"),
-  priceId: text("price_id").references(() => prices.id),
+  priceId: text("price_id")
+    .references(() => prices.id)
+    .references(() => prices.id),
   quantity: integer("quantity"),
   cancelAtPeriodEnd: boolean("cancel_at_period_end"),
   created: timestamp("created", { withTimezone: true, mode: "string" })
@@ -190,4 +220,17 @@ export const subscriptions = pgTable("subscriptions", {
     withTimezone: true,
     mode: "string",
   }).default(sql`now()`),
+});
+
+export const collaborators = pgTable("collaborators", {
+  id: uuid("id").defaultRandom().primaryKey().notNull(),
+  workspaceId: uuid("workspace_id")
+    .notNull()
+    .references(() => workspaces.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true, mode: "string" })
+    .defaultNow()
+    .notNull(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
 });

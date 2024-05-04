@@ -5,15 +5,29 @@
     {
       "idx": 0,
       "version": "5",
-      "when": 1714731133172,
-      "tag": "0000_cute_lady_mastermind",
+      "when": 1714822929487,
+      "tag": "0000_common_the_initiative",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "5",
-      "when": 1714731860035,
-      "tag": "0001_fair_mordo",
+      "when": 1714823227749,
+      "tag": "0001_elite_korvac",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1714823695938,
+      "tag": "0002_new_rattler",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1714823904855,
+      "tag": "0003_cloudy_nightcrawler",
       "breakpoints": true
     }
   ]
