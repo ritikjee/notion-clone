@@ -61,12 +61,12 @@ const LoginPage = () => {
           justify-left
           items-center"
         >
-          <Image src={"/logo.svg"} alt="cypress Logo" width={50} height={50} />
+          <Image src={"/logo.svg"} alt=" Logo" width={50} height={50} />
           <span
             className="font-semibold
           dark:text-white text-4xl first-letter:ml-2"
           >
-            Notion
+            LampStack
           </span>
         </Link>
         <FormDescription
@@ -104,7 +104,7 @@ const LoginPage = () => {
         {submitError && <FormMessage>{submitError}</FormMessage>}
         <Button
           type="submit"
-          className="w-full p-6 hover:bg-primary-purple-400"
+          className="w-full p-6 "
           size="lg"
           disabled={isLoading}
         >

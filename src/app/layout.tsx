@@ -3,11 +3,13 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import db from "@/lib/supabase/db";
 import { ThemeProvider } from "@/providers/theme-provider";
+import AppStateProvider from "@/providers/state-provider";
+import { Toaster } from "@/components/ui/toaster";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Notion Clone",
+  title: "LampStack",
   description: "A place for all to work and collaborate",
 };
 
@@ -26,7 +28,10 @@ export default function RootLayout({
           defaultTheme="dark"
           disableTransitionOnChange
         >
-          {children}
+          <AppStateProvider>
+            {children}
+            <Toaster />
+          </AppStateProvider>
         </ThemeProvider>
       </body>
     </html>

@@ -41,7 +41,7 @@ function HomePage() {
             hover:text-primary-foreground
           "
           >
-            Get Notion Free
+            Get LampStack Free
           </Button>
         </div>
       </section>
