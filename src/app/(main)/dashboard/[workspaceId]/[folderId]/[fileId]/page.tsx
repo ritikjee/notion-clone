@@ -11,7 +11,7 @@ async function FilePage({ params }: { params: { fileId: string } }) {
     <div className="relative">
       <Editor
         dirDetails={data[0] || {}}
-        dirType="folder"
+        dirType="file"
         fileId={params.fileId}
       />
     </div>
