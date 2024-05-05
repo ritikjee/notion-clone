@@ -75,7 +75,7 @@ const UserCard: React.FC<UserCardProps> = async ({ subscription }) => {
         <LogoutButton>
           <LogOut />
         </LogoutButton>
-        <ModeToggle />
+        {/* <ModeToggle /> */}
       </div>
     </article>
   );
