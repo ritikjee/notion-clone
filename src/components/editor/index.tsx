@@ -1,6 +1,12 @@
 "use client";
 import { usePathname, useRouter } from "next/navigation";
-import React, { useCallback, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 
@@ -15,6 +21,9 @@ import { Button } from "../ui/button";
 import {
   deleteFile,
   deleteFolder,
+  getFileDetails,
+  getFolderDetails,
+  getWorkspaceDetails,
   updateFile,
   updateFolder,
   updateWorkspace,
@@ -31,6 +40,7 @@ import Image from "next/image";
 import EmojiPicker from "../emoji-picker";
 import BannerUpload from "../banner-upload";
 import { XCircleIcon } from "lucide-react";
+import { useSocket } from "@/providers/socket-provide";
 
 interface EditorProps {
   dirDetails: File | Folder | workspace;
@@ -41,11 +51,14 @@ interface EditorProps {
 function Editor({ dirDetails, dirType, fileId }: EditorProps) {
   const [editor, setEditor] = useState<any>(null);
   const { state, workspaceId, folderId, dispatch } = useAppState();
+  const { socket } = useSocket();
   const [collaborators, setCollaborators] = useState<
     { id: string; email: string; avatarUrl: string }[]
   >([]);
   const [saving, setSaving] = useState(false);
   const [deletingBanner, setDeletingBanner] = useState(false);
+
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
 
   const pathname = usePathname();
   const router = useRouter();
@@ -102,6 +115,181 @@ function Editor({ dirDetails, dirType, fileId }: EditorProps) {
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state, workspaceId, folderId]);
+
+  useEffect(() => {
+    if (!fileId) return;
+
+    let selectedDir: any;
+
+    const fetchInfo = async () => {
+      if (dirType === "file") {
+        const { data: selectedDir, error } = await getFileDetails(fileId);
+
+        if (error || !selectedDir) {
+          return router.replace(`/dashboard`);
+        }
+
+        if (!selectedDir[0]) {
+          if (!workspaceId) return;
+          return router.replace(`/dashboard/${workspaceId}`);
+        }
+        if (!workspaceId || editor === null) return;
+        if (!selectedDir[0].data) return;
+
+        editor.setContents(JSON.parse(selectedDir[0].data || ""));
+
+        dispatch({
+          type: "UPDATE_FILE",
+          payload: {
+            file: { data: JSON.parse(selectedDir[0].data) },
+            fileId,
+            folderId: selectedDir[0].folderId,
+            workspaceId,
+          },
+        });
+      }
+      if (dirType === "folder") {
+        const { data: selectedDir, error } = await getFolderDetails(fileId);
+        if (error || !selectedDir) {
+          return router.replace("/dashboard");
+        }
+
+        if (!selectedDir[0]) {
+          router.replace(`/dashboard/${workspaceId}`);
+        }
+        if (editor === null) return;
+        if (!selectedDir[0].data) return;
+        editor.setContents(JSON.parse(selectedDir[0].data || ""));
+        dispatch({
+          type: "UPDATE_FOLDER",
+          payload: {
+            folderId: fileId,
+            folder: { data: selectedDir[0].data },
+            workspaceId: selectedDir[0].workspaceId,
+          },
+        });
+      }
+      if (dirType === "workspace") {
+        const { data: selectedDir, error } = await getWorkspaceDetails(fileId);
+        if (error || !selectedDir) {
+          return router.replace("/dashboard");
+        }
+        if (!selectedDir[0] || editor === null) return;
+        if (!selectedDir[0].data) return;
+        editor.setContents(JSON.parse(selectedDir[0].data || ""));
+        dispatch({
+          type: "UPDATE_WORKSPACE",
+          payload: {
+            workspace: { data: selectedDir[0].data },
+            workspaceId: fileId,
+          },
+        });
+      }
+    };
+
+    fetchInfo();
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fileId, workspaceId, editor, dirType]);
+
+  useEffect(() => {
+    if (socket === null || editor === null || !fileId) return;
+    socket.emit("create-room", fileId);
+  }, [socket, editor, fileId]);
+
+  useEffect(() => {
+    if (editor === null || socket === null || !fileId || !user) return;
+
+    const selectionChangeHandler = (cursorId: string) => {
+      return (range: any, oldRange: any, source: any) => {
+        if (source === "user" && cursorId) {
+          socket.emit("send-cursor-move", range, fileId, cursorId);
+        }
+      };
+    };
+    const quillHandler = (delta: any, oldDelta: any, source: any) => {
+      if (source !== "user") return;
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      setSaving(true);
+      const contents = editor.getContents();
+      const quillLength = editor.getLength();
+      saveTimerRef.current = setTimeout(async () => {
+        if (contents && quillLength !== 1 && fileId) {
+          if (dirType == "workspace") {
+            dispatch({
+              type: "UPDATE_WORKSPACE",
+              payload: {
+                workspace: { data: JSON.stringify(contents) },
+                workspaceId: fileId,
+              },
+            });
+            await updateWorkspace({ data: JSON.stringify(contents) }, fileId);
+          }
+          if (dirType == "folder") {
+            if (!workspaceId) return;
+            dispatch({
+              type: "UPDATE_FOLDER",
+              payload: {
+                folder: { data: JSON.stringify(contents) },
+                workspaceId,
+                folderId: fileId,
+              },
+            });
+            await updateFolder({ data: JSON.stringify(contents) }, fileId);
+          }
+          if (dirType == "file") {
+            if (!workspaceId || !folderId) return;
+            dispatch({
+              type: "UPDATE_FILE",
+              payload: {
+                file: { data: JSON.stringify(contents) },
+                workspaceId,
+                folderId: folderId,
+                fileId,
+              },
+            });
+            await updateFile({ data: JSON.stringify(contents) }, fileId);
+          }
+        }
+        setSaving(false);
+      }, 850);
+      socket.emit("send-changes", delta, fileId);
+    };
+    editor.on("text-change", quillHandler);
+    editor.on("selection-change", selectionChangeHandler(user.id));
+
+    return () => {
+      editor.off("text-change", quillHandler);
+      editor.off("selection-change", selectionChangeHandler);
+      if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+    };
+  }, [editor, socket, fileId, user, details, folderId, workspaceId, dispatch]);
+
+  useEffect(() => {
+    if (editor === null || socket === null) return;
+    const socketHandler = (deltas: any, id: string) => {
+      if (id === fileId) {
+        editor.updateContents(deltas);
+      }
+    };
+    socket.on("receive-changes", socketHandler);
+    return () => {
+      socket.off("receive-changes", socketHandler);
+    };
+  }, [editor, socket, fileId]);
+
+  useEffect(() => {
+    if (editor === null || socket === null) return;
+    const socketHandler = (deltas: any, id: string) => {
+      if (id === fileId) {
+        editor.updateContents(deltas);
+      }
+    };
+    socket.on("receive-changes", socketHandler);
+    return () => {
+      socket.off("receive-changes", socketHandler);
+    };
+  }, [editor, socket, fileId]);
 
   const breadCrumbs = useMemo(() => {
     if (!pathname || !state.workspaces || !workspaceId) return;
